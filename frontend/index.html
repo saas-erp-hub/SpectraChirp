@@ -71,6 +71,7 @@
 
     <!-- Receive -->
     <div class="label">Decode Audio File:</div>
+    <span id="decodedModeDisplay" style="font-size: 0.8em; color: #555; margin-bottom: 10px; display: block;"></span>
     <input type="file" id="fileInput" style="display: none;">
     <div class="row" style="margin-top: 1rem;">
       <button id="selectFileButton">Choose File</button><span id="fileNameDisplay" style="margin-left: 10px;">No file chosen</span>
@@ -109,6 +110,7 @@
     };
     const decodeBtn = document.getElementById('decode-btn');
     const decodeOutput = document.getElementById('decode-output');
+    const decodedModeDisplay = document.getElementById('decodedModeDisplay');
     const copyDecodedBtn = document.getElementById('copy-decoded-btn');
 
 
@@ -208,11 +210,14 @@
         if (data.decoded_text) {
           decodeOutput.innerHTML = `<span class="status-success">Decoded Message:</span><br>${data.decoded_text}`;
           if (data.detected_mode) {
-            decodeOutput.innerHTML += `<br><span style="font-size: 0.8em; color: #555;">(Mode: ${data.detected_mode})</span>`;
+            decodedModeDisplay.textContent = `(Mode: ${data.detected_mode})`;
+          } else {
+            decodedModeDisplay.textContent = '';
           }
           copyDecodedBtn.style.display = 'block'; // Show copy button
         } else {
           decodeOutput.innerHTML = `<span class="status-error">No message decoded.</span>`;
+          decodedModeDisplay.textContent = '';
         }
 
       } catch (e) {
