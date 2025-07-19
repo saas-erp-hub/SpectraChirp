@@ -63,7 +63,6 @@ async def decode_signal(file: UploadFile = File(...)):
     """Decodes an MFSK audio signal from an uploaded WAV file.
 
     Args:
-        mode: The modem mode used for encoding (e.g., 'DEFAULT', 'ROBUST').
         file: The uploaded WAV file containing the audio signal.
 
     Returns:
