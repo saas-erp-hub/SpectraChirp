@@ -93,11 +93,15 @@ SpectraChirp is a Python-based acoustic modem that transmits data through sound 
 5.  Click **Decode**. The backend will automatically detect the transmission mode.
 6.  The decoded message will appear in the output box.
 
+![SpectraChirp Web UI](docs/images/web_ui_screenshot_optimized.png)
+
 ### Command Line Interface (CLI) Usage
 
 SpectraChirp also provides a command-line interface (`cli.py`) for direct interaction with the modem functionalities, useful for scripting or advanced usage.
 
 To run CLI commands, navigate to the project root directory and use `python cli.py <command> [options]`.
+
+![SpectraChirp CLI](docs/images/cli_screenshot_optimized.png)
 
 **Commands:**
 
