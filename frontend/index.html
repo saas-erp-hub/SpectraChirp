@@ -70,7 +70,7 @@
     <div class="divider"></div>
 
     <!-- Receive -->
-    <div class="label">Decode Audio File:</div>
+    <div class="label">Decode Audio File: <span id="decode-spinner" class="spinner"></span></div>
     <span id="decodedModeDisplay" style="font-size: 0.8em; color: #555; margin-bottom: 10px; display: block;"></span>
     <input type="file" id="fileInput" style="display: none;">
     <div class="row" style="margin-top: 1rem;">
@@ -111,6 +111,7 @@
     const decodeBtn = document.getElementById('decode-btn');
     const decodeOutput = document.getElementById('decode-output');
     const decodedModeDisplay = document.getElementById('decodedModeDisplay');
+    const decodeSpinner = document.getElementById('decode-spinner');
     const copyDecodedBtn = document.getElementById('copy-decoded-btn');
 
 
@@ -189,6 +190,7 @@
         return;
       }
       decodeBtn.disabled = true;
+      decodeSpinner.style.display = 'inline-block'; // Show spinner
       decodeOutput.textContent = "Decoding message...";
 
       try {
@@ -224,6 +226,7 @@
         decodeOutput.innerHTML = `<span class="status-error">Error decoding: ${e.message}</span>`;
       } finally {
         decodeBtn.disabled = false;
+        decodeSpinner.style.display = 'none';
       }
     };
 
