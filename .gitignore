@@ -136,3 +136,6 @@ Thumbs.db
 
 # Log files
 *.log
+
+# Gemini specific files
+.gemini/
