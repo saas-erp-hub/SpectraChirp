@@ -31,6 +31,7 @@ SpectraChirp is a Python-based acoustic modem that transmits data through sound 
 - **Error Correction**: Implements Reed-Solomon codes to correct errors caused by noise.
 - **Synchronization**: Uses chirp signals to reliably synchronize the start of each data packet.
 - **Web-Based UI**: Simple and intuitive frontend built with HTML and JavaScript.
+- **Full Character Support**: Unlike many traditional modems, SpectraChirp reliably transmits and decodes messages containing uppercase and lowercase letters, numbers, and special characters.
 
 ---
 
