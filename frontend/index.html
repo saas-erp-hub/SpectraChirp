@@ -75,7 +75,7 @@
     </div>
 
     <div class="row" style="margin-top: 1.5rem;">
-      <button id="send-btn">Generate Signal</button>
+      <button id="send-btn">Encode</button>
       <button id="clear-btn" style="background:#eee;color:#333;">Clear</button>
     </div>
 
@@ -89,7 +89,8 @@
     <!-- Receive -->
     <div class="label">Decode Audio File:</div>
     <div class="file-upload">
-      <input type="file" id="file-input" accept=".wav,audio/wav,audio/x-wav" />
+      <input type="file" id="fileInput" style="display: none;">
+    <button id="selectFileButton">Choose File</button>
       <div class="controls-grid" style="margin-top: 1rem;">
         <div>
           <label for="modem-decode-select" class="label">Modem Type:</label>
