@@ -8,7 +8,7 @@ We take the security of SpectraChirp seriously. If you discover a security vulne
 
 Instead, please report the vulnerability by sending an email to:
 
-[INSERT SECURITY CONTACT EMAIL HERE]
+bytebuilder@users.noreply.github.com
 
 We will acknowledge your email within 24 hours and provide a more detailed response within 48 hours. We will keep you informed about the progress of the fix and will notify you when the vulnerability has been addressed.
 
