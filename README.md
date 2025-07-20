@@ -58,7 +58,7 @@ SpectraChirp is a Python-based acoustic modem that transmits data through sound 
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/your-username/SpectraChirp.git
+    git clone https://github.com/saas-erp-hub/SpectraChirp.git
     cd SpectraChirp
     ```
 
