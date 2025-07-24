@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Acoustic Modem</title>
+  <title>SpectraChirp Acoustic Modem</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { font-family: Arial, sans-serif; margin: 0; padding: 2rem; background: #f6f8fa;}
@@ -58,7 +58,7 @@
     <textarea id="input-text" placeholder="Enter your message..."></textarea>
 
     <div class="row" style="margin-top: 1.5rem;">
-      <button id="send-btn">Encode</button>
+      <button id="send-btn">Generate Signal</button>
       <button id="clear-btn" style="background:#eee;color:#333;">Clear</button>
     </div>
 
@@ -84,7 +84,7 @@
   </div>
 
   <script>
-    const API_BASE = "http://127.0.0.1:8000";
+    const API_BASE = "";
     const sendBtn = document.getElementById('send-btn');
     const clearBtn = document.getElementById('clear-btn');
     const inputText = document.getElementById('input-text');

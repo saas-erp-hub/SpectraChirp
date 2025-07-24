@@ -167,3 +167,9 @@ To run CLI commands, navigate to the project root directory and use `python cli.
 ## Future Improvements
 
 For a list of potential enhancements and future ideas, please see the [Future Improvements](docs/future_improvements.md) document.
+
+---
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
