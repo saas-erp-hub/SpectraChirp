@@ -1,13 +1,13 @@
-from fastapi import FastAPI, HTTPException, UploadFile, File, Form
+from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import Response  # Changed from FileResponse
 from pydantic import BaseModel
 import numpy as np
 import soundfile as sf
 import logging
 import os
-from scipy.io import wavfile
+import io  # Added for in-memory file handling
 from .modem_mfsk import send_text_mfsk, receive_text_mfsk
 
 logging.basicConfig(
@@ -16,7 +16,7 @@ logging.basicConfig(
 
 app = FastAPI()
 
-# Allow all origins for development, but you might want to restrict this in production
+# Allow all origins for development
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -28,18 +28,21 @@ app.add_middleware(
 
 class Message(BaseModel):
     text: str
-    mode: str  # e.g., 'DEFAULT', 'ROBUST'
+    mode: str
 
 
 @app.post("/generate_signal")
 def generate_signal(message: Message):
-    """Generates an MFSK audio signal from text input."""
+    """Generates an MFSK audio signal from text and returns it from memory."""
     try:
-        signal, _ = send_text_mfsk(message.text, mode=message.mode)
-        file_path = "temp_audio.wav"
-        sf.write(file_path, signal, 16000)  # Use a common sample rate
-        return FileResponse(
-            file_path, media_type="audio/wav", filename="generated_signal.wav"
+        # This function now returns an in-memory buffer
+        audio_buffer = send_text_mfsk(message.text, mode=message.mode)
+        
+        # Return the audio data directly from the buffer
+        return Response(
+            content=audio_buffer.read(),
+            media_type="audio/wav",
+            headers={"Content-Disposition": "attachment; filename=generated_signal.wav"},
         )
     except Exception as e:
         logging.exception("Error in generate_signal endpoint")
@@ -48,13 +51,14 @@ def generate_signal(message: Message):
 
 @app.post("/decode_signal")
 async def decode_signal(file: UploadFile = File(...)):
-    """Decodes an MFSK audio signal from an uploaded WAV file."""
+    """Decodes an MFSK audio signal from an uploaded WAV file in memory."""
     try:
-        temp_file_path = "temp_received_audio.wav"
-        with open(temp_file_path, "wb") as buffer:
-            buffer.write(await file.read())
+        # Read the uploaded file into an in-memory buffer
+        audio_bytes = await file.read()
+        buffer = io.BytesIO(audio_bytes)
+        buffer.seek(0)
 
-        audio_data, _ = sf.read(temp_file_path)
+        audio_data, _ = sf.read(buffer)
         decoded_text, _, _, detected_mode = receive_text_mfsk(audio_data)
 
         return {"decoded_text": decoded_text, "detected_mode": detected_mode}
