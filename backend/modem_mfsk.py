@@ -1,5 +1,7 @@
 import numpy as np
 import zlib
+import io  # <-- Make sure io is imported
+import soundfile as sf  # <-- Make sure soundfile is imported
 from scipy.linalg import hadamard
 from scipy.signal import chirp
 from dataclasses import dataclass
@@ -160,7 +162,10 @@ def _assemble_mfsk_signal(
     return np.concatenate([full_packet_signal, pause])
 
 
-def send_text_mfsk(text: str, mode: Union[str, ModemConfig] = "DEFAULT") -> tuple[np.ndarray, list[bytes]]:
+def send_text_mfsk(text: str, mode: Union[str, ModemConfig] = "DEFAULT") -> io.BytesIO:
+    """
+    Generates the MFSK signal, normalizes it, and returns it in an in-memory WAV buffer.
+    """
     if isinstance(mode, str):
         config = MODEM_MODES.get(mode, MODEM_MODES["DEFAULT"])
     else:
@@ -172,17 +177,22 @@ def send_text_mfsk(text: str, mode: Union[str, ModemConfig] = "DEFAULT") -> tupl
         for i in range(0, len(byte_data), PACKET_PAYLOAD_SIZE)
     ]
     all_packets_signal = np.array([])
-    all_full_packet_bytes = []
     total_chunks = len(chunks)
     for i, chunk in enumerate(chunks):
         encoded_message = _prepare_mfsk_packet(chunk, i + 1, total_chunks)
         packet_signal = _assemble_mfsk_signal(encoded_message, config)
         all_packets_signal = np.concatenate([all_packets_signal, packet_signal])
-        all_full_packet_bytes.append(encoded_message)
+    
+    # Normalize the signal to prevent clipping
     max_amplitude = np.max(np.abs(all_packets_signal))
     if max_amplitude > 1e-9:
         all_packets_signal /= max_amplitude
-    return (all_packets_signal, all_full_packet_bytes)
+
+    # Write to an in-memory buffer instead of a file
+    buffer = io.BytesIO()
+    sf.write(buffer, all_packets_signal, SAMPLE_RATE, format='WAV', subtype='PCM_16')
+    buffer.seek(0)  # Rewind the buffer to the beginning for reading
+    return buffer
 
 
 def _synchronize_mfsk_signal(signal: np.ndarray, config: ModemConfig) -> tuple[np.ndarray, list[int], int, int]:
