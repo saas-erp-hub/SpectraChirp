@@ -1,33 +1,19 @@
 #!/bin/bash
 
-# Pfad zum Projekt-Stammverzeichnis
-PROJECT_ROOT="$(dirname "$0")"
+# Change to the script's directory to ensure correct relative paths
+cd "$(dirname "$0")"
 
-echo "Starting FastAPI backend..."
-# Startet den FastAPI-Server im Hintergrund
-# uv run uvicorn backend.main:app --reload &
-# Startet den FastAPI-Server im Hintergrund
-# Verwenden Sie `nohup` und `&` um den Prozess im Hintergrund zu halten, auch wenn das Terminal geschlossen wird.
-# Die Ausgabe wird in nohup.out umgeleitet.
-nohup uv run uvicorn backend.main:app --reload > "$PROJECT_ROOT/backend_startup.log" 2>&1 &
-BACKEND_PID=$!
-echo "FastAPI backend started with PID: $BACKEND_PID. Log: $PROJECT_ROOT/backend_startup.log"
+# Start the backend server in the background
+python -m backend &
 
-echo "Waiting for backend to start (5 seconds)..."
-sleep 5 # Gibt dem Backend Zeit zum Starten
+# Wait a few seconds for the backend server to start
+sleep 3
 
-echo "Opening frontend in browser..."
-# Öffnet die index.html im Standardbrowser
-# Plattformunabhängige Lösung
-if command -v xdg-open > /dev/null; then
-  xdg-open "$PROJECT_ROOT/frontend/index.html"
-elif command -v open > /dev/null; then
-  open "$PROJECT_ROOT/frontend/index.html"
-elif command -v start > /dev/null; then
-  start "$PROJECT_ROOT/frontend/index.html"
-else
-  echo "Could not open browser automatically. Please open $PROJECT_ROOT/frontend/index.html manually."
-fi
+# Start the frontend HTTP server in the background
+(cd frontend && python -m http.server 8000) &
 
-echo "Modem startup script finished."
-echo "To stop the backend, run: kill $BACKEND_PID"
+# Wait a few seconds for the frontend server to start
+sleep 2
+
+# Open the frontend in the default web browser
+xdg-open http://localhost:8000/index.html 2>/dev/null || open http://localhost:8000/index.html 2>/dev/null || echo "Please open http://localhost:8000/index.html in your browser."
