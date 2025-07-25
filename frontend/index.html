@@ -84,7 +84,9 @@
   </div>
 
   <script>
-    const API_BASE = "";
+    const API_BASE = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+      ? "http://127.0.0.1:8001"
+      : "";
     const sendBtn = document.getElementById('send-btn');
     const clearBtn = document.getElementById('clear-btn');
     const inputText = document.getElementById('input-text');
