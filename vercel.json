@@ -3,22 +3,13 @@
   "builds": [
     {
       "src": "backend/main.py",
-      "use": "@vercel/python",
-      "config": { "handler": "main.app" }
-    },
-    {
-      "src": "frontend/index.html",
-      "use": "@vercel/static"
+      "use": "@vercel/python"
     }
   ],
   "routes": [
     {
-      "src": "/api/.*",
-      "dest": "backend/main.py"
-    },
-    {
       "src": "/(.*)",
-      "dest": "frontend/index.html"
+      "dest": "backend/main.py"
     }
   ]
 }
