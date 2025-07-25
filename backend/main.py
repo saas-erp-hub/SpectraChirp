@@ -80,12 +80,6 @@ frontend_dir = os.path.join(backend_dir, '..', 'frontend')
 images_dir = os.path.join(backend_dir, '..', 'docs', 'images')
 app.mount("/docs/images", StaticFiles(directory=images_dir), name="images")
 
-# Serve the main index.html at the root
-@app.get("/")
-async def read_index():
-    index_path = os.path.join(frontend_dir, 'index.html')
-    return FileResponse(index_path)
-
-# Serve any other static files from the frontend directory
-app.mount("/", StaticFiles(directory=frontend_dir), name="static")
+# Serve all static files from the frontend directory, including index.html at the root
+app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="static")
 
