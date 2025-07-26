@@ -94,9 +94,13 @@ You can use SpectraChirp in two ways: through the web interface or the command-l
 2.  **Open the Frontend:**
     Open the `frontend/index.html` file in your web browser.
 
+![SpectraChirp Web UI](https://github.com/saas-erp-hub/SpectraChirp/blob/main/docs/images/web_ui_screenshot.png?raw=true)
+
 #### Using the Command-Line Interface (CLI)
 
 After the installation, the `spectrachirp` command is ready to use directly in your terminal.
+
+![SpectraChirp CLI](https://github.com/saas-erp-hub/SpectraChirp/blob/main/docs/images/cli_screenshot.png?raw=true)
 
 *Examples:*
 ```bash
