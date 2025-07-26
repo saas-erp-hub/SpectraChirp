@@ -93,7 +93,7 @@ You can use SpectraChirp in two ways: through the web interface or the command-l
     This script will start both the backend server and a local frontend server, and then attempt to open the web interface in your default browser.
 
 2.  **Access the Frontend (if not automatically opened):**
-    If the browser does not open automatically, navigate to `http://localhost:8000/frontend/index.html` in your web browser.
+    If the browser does not open automatically, navigate to `http://localhost:8000/index.html` in your web browser.
 
 ![SpectraChirp Web UI](https://github.com/saas-erp-hub/SpectraChirp/blob/main/docs/images/web_ui_screenshot.png?raw=true)
 
