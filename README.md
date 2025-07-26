@@ -138,15 +138,14 @@ SpectraChirp also provides a command-line interface (`cli.py`) for scripting or 
 
 ---
 
-## Getting Help
+## Help & Contributing
 
-If you have questions, encounter a bug, or have a feature request, please **open an issue** on the [GitHub Issue Tracker](https://github.com/saas-erp-hub/SpectraChirp/issues).
+We welcome feedback and contributions from the community!
 
----
-
-## Contributing
-
-Contributions are welcome! Please see the [**Contributing Guidelines**](CONTRIBUTING.md) for details on how to get started.
+*   **Bug Reports:** If you encounter a bug, please open an [issue](https://github.com/saas-erp-hub/SpectraChirp/issues). Be sure to check if a similar issue already exists.
+*   **Feature Requests:** Have an idea for a new feature? We'd love to hear it. Please create an [issue](https://github.com/saas-erp-hub/SpectraChirp/issues) to outline your proposal.
+*   **Questions:** For general questions or discussions, feel free to open an [issue](https://github.com/saas-erp-hub/SpectraChirp/issues).
+*   **Pull Requests:** If you'd like to contribute directly, please read our [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on how to submit a pull request.
 
 ---
 
