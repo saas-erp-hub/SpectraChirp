@@ -86,13 +86,14 @@ You can use SpectraChirp in two ways: through the web interface or the command-l
 
 #### Using the Web Interface
 
-1.  **Start the backend server:**
+1.  **Start the application:**
     ```bash
     sh start_modem.sh
     ```
+    This script will start both the backend server and a local frontend server, and then attempt to open the web interface in your default browser.
 
-2.  **Open the Frontend:**
-    Open the `frontend/index.html` file in your web browser.
+2.  **Access the Frontend (if not automatically opened):**
+    If the browser does not open automatically, navigate to `http://localhost:8000/frontend/index.html` in your web browser.
 
 ![SpectraChirp Web UI](https://github.com/saas-erp-hub/SpectraChirp/blob/main/docs/images/web_ui_screenshot.png?raw=true)
 
