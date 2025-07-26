@@ -49,15 +49,22 @@ SpectraChirp is a Python-based acoustic modem that transmits data through sound 
 
 ---
 
-## Setup and Usage
+## Setup and Installation
 
 ### Prerequisites
 
 - Python 3.8+
 - `uv` (Python package installer). If you don't have it, install it with `pip install uv`.
--   **Audio Hardware**: A working microphone and speakers.
+- **Audio Hardware**: A working microphone and speakers.
+- **System Dependencies**: On some systems (like Linux or macOS with Homebrew), you may need to install the `PortAudio` library, which `sounddevice` depends on.
+    ```bash
+    # On Debian/Ubuntu
+    sudo apt-get install libportaudio2
+    # On macOS with Homebrew
+    brew install portaudio
+    ```
 
-### Installation & Running
+### Installation
 
 1.  **Clone the repository:**
     ```bash
@@ -65,33 +72,46 @@ SpectraChirp is a Python-based acoustic modem that transmits data through sound 
     cd SpectraChirp
     ```
 
-2.  **Install Python dependencies:**
+2.  **Install the project:**
+    Run the following command in the root directory of the project. This command installs all necessary Python packages and makes the `spectrachirp` command available in your terminal.
     ```bash
-    uv pip install -r backend/requirements.txt
+    uv pip install -e .
     ```
 
-3.  **Start the backend server:**
+---
+
+## Usage
+
+You can use SpectraChirp in two ways: through the web interface or the command-line interface.
+
+#### Using the Web Interface
+
+1.  **Start the backend server:**
     ```bash
     sh start_modem.sh
     ```
-    You can check the server logs in `backend_startup.log`.
 
-4.  **Open the Frontend:**
-    Open the `frontend/index.html` file in your web browser or visit the [**Live Demo**](https://spectra-chirp.vercel.app).
+2.  **Open the Frontend:**
+    Open the `frontend/index.html` file in your web browser.
 
-### Web UI Usage
+#### Using the Command-Line Interface (CLI)
 
-![SpectraChirp Web UI](docs/images/web_ui_screenshot.png)
+After the installation, the `spectrachirp` command is ready to use directly in your terminal.
 
-1.  **Sending**: Type your message, click **Generate Signal**, and play the resulting audio.
-2.  **Receiving**: On another computer, record the audio as a `.wav` file. In the UI, click **Choose File**, select your recording, and click **Decode**.
+*Examples:*
+```bash
+# Send a message and save it to a file
+spectrachirp send "hello there" -o modem_signal.wav
+
+# Record a message for 5 seconds and print the result
+spectrachirp receive --live --duration 5
+
+# Get help for a specific command
+spectrachirp send --help
+```
 
 <details open>
-<summary><b>► Click to view Command Line (CLI) Usage</b></summary>
-
-SpectraChirp also provides a command-line interface (`cli.py`) for scripting or advanced usage.
-
-![SpectraChirp CLI](docs/images/cli_screenshot.png)
+<summary><b>► Click to view Full Command Line (CLI) Reference</b></summary>
 
 **Commands:**
 
@@ -103,21 +123,11 @@ SpectraChirp also provides a command-line interface (`cli.py`) for scripting or 
     -   `--num-tones <int>`: Override number of tones (must be a power of 2).
     -   `--symbol-duration <float>`: Override symbol duration in ms.
     -   `--tone-spacing <float>`: Override tone spacing in Hz.
-    *Examples:*
-    ```bash
-    python cli.py send "hello there" -o modem_signal.wav
-    python cli.py send --from-file message.txt -o custom.wav
-    ```
 
 -   **`receive [input_file]`**: Receive and decode a text message from an audio source.
     -   `--to-file, -t <path>`: Path to a text file to save the decoded message to.
     -   `--live, -l`: Record audio directly from the microphone.
     -   `--duration, -d <seconds>`: Recording duration in seconds for live mode (default: 10).
-    *Examples:*
-    ```bash
-    python cli.py receive modem_signal.wav
-    python cli.py receive --live --duration 5
-    ```
 
 -   **`analyze <input_file>`**: Inspect an audio file for modem signals and packet data.
 -   **`play <input_file>`**: Play an audio file.

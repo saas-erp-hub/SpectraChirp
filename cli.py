@@ -31,21 +31,21 @@ mode_help = ("The MFSK modem mode to use. Available: DEFAULT, "
 epilog_text = """
 Examples:
 
-  1. Send a message and save it to a file:			python cli.py send "hello world" -o message.wav
+  1. Send a message and save it to a file:			spectrachirp send "hello world" -o message.wav
 
-  2. Play back the generated audio file:				python cli.py play message.wav
+  2. Play back the generated audio file:				spectrachirp play message.wav
 
-  3. Record a message for 5 seconds and print the result:		python cli.py receive --live --duration 5
+  3. Record a message for 5 seconds and print the result:		spectrachirp receive --live --duration 5
 
-  4. Decode a message from a file and save the result:		python cli.py receive message.wav --to-file decoded.txt
+  4. Decode a message from a file and save the result:		spectrachirp receive message.wav --to-file decoded.txt
 
-  5. Send a message live using a specific mode:			python cli.py send "live message" --mode FAST --live
+  5. Send a message live using a specific mode:			spectrachirp send "live message" --mode FAST --live
 
-  6. Analyze a signal file for packet information:		python cli.py analyze message.wav
+  6. Analyze a signal file for packet information:		spectrachirp analyze message.wav
 
-  7. List detailed information about available modem modes:	python cli.py info modes
+  7. List detailed information about available modem modes:	spectrachirp info modes
 
-  8. Get help for a specific command (e.g., send):		python cli.py send --help
+  8. Get help for a specific command (e.g., send):		spectrachirp send --help
 """
 
 
@@ -80,19 +80,19 @@ def list_modes():
     epilog="""
 Examples:
   Send a simple message and save to 'modem_signal.wav':
-    python cli.py send "hello there"
+    spectrachirp send "hello there"
 
   Send from a file and save to a custom audio file:
-    python cli.py send --from-file message.txt -o custom.wav
+    spectrachirp send --from-file message.txt -o custom.wav
 
   Send a message in ROBUST mode and play it live:
-    python cli.py send "live robust" --mode ROBUST --live
+    spectrachirp send "live robust" --mode ROBUST --live
     
   Send using custom expert parameters:
-    python cli.py send "expert" --num-tones 8 --symbol-duration 120 --tone-spacing 20
+    spectrachirp send "expert" --num-tones 8 --symbol-duration 120 --tone-spacing 20
 
   Get help for the send command:
-    python cli.py send --help
+    spectrachirp send --help
 """
 )
 def send(
@@ -186,10 +186,18 @@ def send(
 
     typer.echo(f"Encoding text: '{text_to_send[:100]}"
                f"{'...' if len(text_to_send) > 100 else ''}'")
-    signal, _ = send_text_mfsk(text_to_send, mode=config_to_use)
+    
+    # The function now returns a BytesIO buffer with the WAV data
+    wav_buffer = send_text_mfsk(text_to_send, mode=config_to_use)
 
     if live:
         try:
+            # Read the data from the buffer for playback
+            wav_buffer.seek(0)
+            signal, samplerate = sf.read(wav_buffer)
+            if samplerate != SAMPLE_RATE:
+                typer.secho(f"Warning: Internal sample rate mismatch. Expected {SAMPLE_RATE}, got {samplerate}", fg=typer.colors.YELLOW)
+
             typer.echo("Playing audio signal...")
             sd.play(signal, SAMPLE_RATE)
             sd.wait()
@@ -199,7 +207,10 @@ def send(
             raise typer.Exit(code=1)
     else:
         try:
-            sf.write(output_file, signal, SAMPLE_RATE)
+            # Write the buffer's content directly to the output file
+            wav_buffer.seek(0)
+            with open(output_file, 'wb') as f:
+                f.write(wav_buffer.read())
             typer.secho(f"Successfully generated signal and saved to "
                         f"'{output_file}'", fg=typer.colors.GREEN)
         except Exception as e:
@@ -212,13 +223,13 @@ def send(
     epilog="""
 Examples:
   Decode from the default 'modem_signal.wav' file:
-    python cli.py receive modem_signal.wav
+    spectrachirp receive modem_signal.wav
 
   Record live for 5 seconds and print the decoded message:
-    python cli.py receive --live --duration 5
+    spectrachirp receive --live --duration 5
 
   Decode from a file and save the output to another file:
-    python cli.py receive input.wav --to-file decoded.txt
+    spectrachirp receive input.wav --to-file decoded.txt
 """
 )
 def receive(
@@ -309,7 +320,7 @@ def receive(
     epilog="""
 Example:
   Analyze a signal and see detailed packet information:
-    python cli.py analyze input_signal.wav
+    spectrachirp analyze input_signal.wav
 """
 )
 def analyze(
@@ -357,7 +368,7 @@ def analyze(
     epilog="""
 Example:
   Play a generated message:
-    python cli.py play message.wav
+    spectrachirp play message.wav
 """
 )
 def play(

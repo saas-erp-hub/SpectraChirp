@@ -13,6 +13,7 @@ setup(
         "Bug Tracker": "https://github.com/saas-erp-hub/SpectraChirp/issues",
     },
     packages=find_packages(),
+    py_modules=["cli"],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
