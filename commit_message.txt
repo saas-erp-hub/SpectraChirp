@@ -1,0 +1,7 @@
+feat: Add automatic port cleanup to start_modem.sh
+
+This commit enhances `start_modem.sh` by adding a function to
+automatically detect and kill processes using ports 8000 and 8001
+before starting the backend and frontend servers. This prevents
+"Address already in use" errors and makes the local development
+startup process more robust and user-friendly.
