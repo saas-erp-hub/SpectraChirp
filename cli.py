@@ -31,7 +31,7 @@ mode_help = ("The MFSK modem mode to use. Available: DEFAULT, "
 epilog_text = """
 Examples:
 
-  1. Send a message and save it to a file:			spectrachirp send "hello world" -o message.wav
+  1. Send a message and save it to a file:			spectrachirp send 'hello world' -o message.wav
 
   2. Play back the generated audio file:				spectrachirp play message.wav
 
@@ -39,7 +39,7 @@ Examples:
 
   4. Decode a message from a file and save the result:		spectrachirp receive message.wav --to-file decoded.txt
 
-  5. Send a message live using a specific mode:			spectrachirp send "live message" --mode FAST --live
+  Send a message live using a specific mode:			spectrachirp send 'live message' --mode FAST --live
 
   6. Analyze a signal file for packet information:		spectrachirp analyze message.wav
 
@@ -80,7 +80,7 @@ def list_modes():
     epilog="""
 Examples:
   Send a simple message and save to 'modem_signal.wav':
-    spectrachirp send "hello there"
+    spectrachirp send 'hello there'
 
   Send from a file and save to a custom audio file:
     spectrachirp send --from-file message.txt -o custom.wav
