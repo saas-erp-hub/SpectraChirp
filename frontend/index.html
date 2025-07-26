@@ -5,8 +5,44 @@
   <title>SpectraChirp Acoustic Modem</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body { font-family: Arial, sans-serif; margin: 0; padding: 2rem; background: #f6f8fa;}
-    .container { max-width: 700px; margin: auto; background: #fff; padding: 2rem; border-radius: 1rem; box-shadow: 0 2px 16px rgba(0,0,0,0.09);}
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0; /* Changed from 2rem to 0 */
+      background: #f6f8fa; /* Fallback color */
+      background-image: url('../docs/images/digital_radio_background.png');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      position: relative;
+      min-height: 100vh; /* Ensure background covers full viewport height */
+      display: flex; /* Use flexbox for vertical centering */
+      flex-direction: column;
+      justify-content: center; /* Center content vertically */
+    }
+
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.6); /* Darker overlay for better contrast */
+      z-index: -1;
+    }
+
+    .container {
+      max-width: 700px;
+      margin: auto; /* Centers horizontally */
+      background: rgba(255, 255, 255, 0.9); /* Slightly transparent white background for content */
+      padding: 2rem;
+      border-radius: 1rem;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.09);
+      position: relative;
+      z-index: 0;
+      /* No need for margin-top/bottom if using flexbox for vertical centering */
+    }
     h1 { text-align: center; color: #234; }
     .label { margin-top: 1.4rem; margin-bottom: 0.5rem; color: #345; font-weight: 600;}
     textarea { width: 100%; min-height: 90px; padding: 0.7rem; border-radius: 0.5rem; border: 1px solid #bbb; font-size: 1rem;}
