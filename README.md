@@ -81,7 +81,7 @@ SpectraChirp is a Python-based acoustic modem that transmits data through sound 
 
 ### Web UI Usage
 
-![SpectraChirp Web UI](docs/images/web_ui_screenshot_original.png)
+![SpectraChirp Web UI](docs/images/web_ui_screenshot.png)
 
 1.  **Sending**: Type your message, click **Generate Signal**, and play the resulting audio.
 2.  **Receiving**: On another computer, record the audio as a `.wav` file. In the UI, click **Choose File**, select your recording, and click **Decode**.
