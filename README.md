@@ -105,7 +105,7 @@ After the installation, the `spectrachirp` command is ready to use directly in y
 *Examples:*
 ```bash
 # Send a message and save it to a file
-spectrachirp send "hello there" -o modem_signal.wav
+spectrachirp send 'hello there' -o modem_signal.wav
 
 # Record a message for 5 seconds and print the result
 spectrachirp receive --live --duration 5
