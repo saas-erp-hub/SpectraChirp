@@ -7,6 +7,16 @@
 
 SpectraChirp is a Python-based acoustic modem that transmits data through sound waves using Multiple Frequency-Shift Keying (MFSK). **It stands out with its robust error correction (Reed-Solomon), automatic mode detection, reliable synchronization via chirp signals, and the use of Walsh-Hadamard spreading for enhanced signal robustness, ensuring dependable communication even in challenging acoustic environments.** It features a simple web interface and a command-line interface for generating and decoding audio signals, allowing text to be sent from one computer to another using only a microphone and speakers.
 
+### Project Goal & Target Audience
+
+This project was developed primarily as an **educational tool** to demonstrate the principles of digital signal processing and data communication. It is designed for:
+
+*   **Students** studying computer science, electrical engineering, or related fields.
+*   **Hobbyists and Makers** interested in radio technology and data-over-sound.
+*   **Anyone** curious about how data can be encoded into and decoded from sound waves.
+
+While SpectraChirp is a fully functional acoustic modem, its implementation is intended to be clear and accessible, making it a great starting point for learning and experimentation.
+
 ---
 
 ## Table of Contents
