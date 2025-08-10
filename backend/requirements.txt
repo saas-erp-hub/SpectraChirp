@@ -1,0 +1,9 @@
+fastapi
+python-multipart
+uvicorn
+numpy
+soundfile
+scipy
+reedsolo
+typer[all]
+sounddevice

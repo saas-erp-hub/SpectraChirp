@@ -1,0 +1,9 @@
+feat(cli): Improve usability and documentation
+
+This commit introduces several improvements to the CLI and its documentation:
+
+- The CLI is now installed as a `spectrachirp` command via `setup.py`, making it directly accessible from the terminal.
+- The `send_text_mfsk` function was refactored to return a WAV buffer, and the CLI was updated to handle this, fixing a `ValueError`.
+- All examples in the CLI's help text and the `README.md` have been updated to use the new `spectrachirp` command.
+- The `README.md` setup instructions have been significantly clarified to ensure a smoother user onboarding process.
+- Updated the CLI screenshot to reflect the current state.
