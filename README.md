@@ -170,7 +170,6 @@ We welcome feedback and contributions from the community!
 *   **Bug Reports:** If you encounter a bug, please open an [issue](https://github.com/saas-erp-hub/SpectraChirp/issues). Be sure to check if a similar issue already exists.
 *   **Feature Requests:** Have an idea for a new feature? We'd love to hear it. Please create an [issue](https://github.com/saas-erp-hub/SpectraChirp/issues) to outline your proposal.
 *   **Questions:** For general questions or discussions, feel free to open an [issue](https://github.com/saas-erp-hub/SpectraChirp/issues).
-*   **Pull Requests:** If you'd like to contribute directly, please read our [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on how to submit a pull request.
 
 ---
 
