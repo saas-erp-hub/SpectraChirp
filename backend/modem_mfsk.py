@@ -1,67 +1,29 @@
 import numpy as np
 import zlib
-import io  # <-- Make sure io is imported
-import soundfile as sf  # <-- Make sure soundfile is imported
+import io
+import soundfile as sf
 from scipy.linalg import hadamard
 from scipy.signal import chirp
 from dataclasses import dataclass
-from reedsolo import RSCodec
 from typing import List, Optional, Tuple, Union
 
-# --- Globale Konfiguration ---
-SAMPLE_RATE = 16000
-BASE_FREQ = 1000
-
-# --- Paket-Konfiguration ---
-PACKET_CHIRP_DURATION = 0.1
-PACKET_CHIRP_F0 = 2500
-PACKET_CHIRP_F1 = 3500
-PACKET_PAYLOAD_SIZE = 32
-PACKET_HEADER_SIZE = 4
-PACKET_CRC_SIZE = 4  # in bytes
-
-# --- Reed-Solomon Konfiguration ---
-RS_NSYMS = 16
-RSC = RSCodec(RS_NSYMS)
-
-
-# --- Modem-Modi Konfiguration ---
-@dataclass
-class ModemConfig:
-    name: str
-    num_tones: int
-    symbol_duration_ms: float
-    tone_spacing: float
-    samples_per_symbol: int
-    bits_per_symbol: int
-
-
-MODEM_MODES = {
-    "DEFAULT": ModemConfig(
-        name="DEFAULT",
-        num_tones=32,
-        symbol_duration_ms=40,
-        tone_spacing=35,
-        samples_per_symbol=640,
-        bits_per_symbol=5,
-    ),
-    "ROBUST": ModemConfig(
-        name="ROBUST",
-        num_tones=16,
-        symbol_duration_ms=60,
-        tone_spacing=25,
-        samples_per_symbol=960,
-        bits_per_symbol=4,
-    ),
-    "FAST": ModemConfig(
-        name="FAST",
-        num_tones=32,
-        symbol_duration_ms=20,
-        tone_spacing=50,
-        samples_per_symbol=320,
-        bits_per_symbol=5,
-    ),
-}
+# Import configuration from the central config file
+from .config import (
+    SAMPLE_RATE,
+    BASE_FREQ,
+    PACKET_CHIRP_DURATION,
+    PACKET_CHIRP_F0,
+    PACKET_CHIRP_F1,
+    PACKET_PAYLOAD_SIZE,
+    PACKET_HEADER_SIZE,
+    PACKET_CRC_SIZE,
+    RS_NSYMS,
+    RSC,
+    ModemConfig,
+    MODEM_MODES,
+    MIN_CORRELATION_THRESHOLD,
+    SYNC_CORRELATION_THRESHOLD_FACTOR,
+)
 
 @dataclass
 class PacketAnalysis:
@@ -205,9 +167,9 @@ def _synchronize_mfsk_signal(signal: np.ndarray, config: ModemConfig) -> tuple[n
     chirp_template = generate_chirp_signal()
     chirp_len = len(chirp_template)
     correlation = np.correlate(signal, chirp_template, mode="valid")
-    if np.max(correlation) < 10:
+    if np.max(correlation) < MIN_CORRELATION_THRESHOLD:
         return signal, [], 0, 0
-    threshold = np.max(correlation) * 0.5
+    threshold = np.max(correlation) * SYNC_CORRELATION_THRESHOLD_FACTOR
     peak_indices = np.where(correlation > threshold)[0]
     if not peak_indices.any():
         return signal, [], 0, 0

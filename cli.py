@@ -18,9 +18,9 @@ except ImportError:
 
 
 from backend.modem_mfsk import (
-    send_text_mfsk, receive_text_mfsk, analyze_signal,
-    MODEM_MODES, SAMPLE_RATE, PacketAnalysis, ModemConfig
+    send_text_mfsk, receive_text_mfsk, analyze_signal, PacketAnalysis
 )
+from backend.config import MODEM_MODES, SAMPLE_RATE, ModemConfig
 
 # Dynamically create the help text for the --mode option
 mode_help = ("The MFSK modem mode to use. Available: DEFAULT, "

@@ -3,10 +3,17 @@ import pytest
 import matplotlib.pyplot as plt
 import itertools
 from itertools import combinations
-from backend.modem_mfsk import send_text_mfsk, receive_text_mfsk, _bytes_to_signal, generate_chirp_signal, PACKET_CRC_SIZE, SAMPLE_RATE, bits_to_bytes, MODEM_MODES, RSC
 
-def calculate_ber(original_bits: str, received_bits: str) -> float:
-    """Berechnet die Bitfehlerrate zwischen zwei Bit-Strings."""
+import soundfile as sf
+from backend.modem_mfsk import (
+    send_text_mfsk, receive_text_mfsk
+)
+from backend.config import (
+    SAMPLE_RATE, RSC
+)
+
+def calculate_bit_error_rate(original_bits: str, received_bits: str) -> float:
+    """Calculates the bit error rate (BER) between two bit strings."""
     if not original_bits:
         return 0.0
     
@@ -22,23 +29,16 @@ def calculate_ber(original_bits: str, received_bits: str) -> float:
     "Short"
 ])
 def test_packet_loopback(message):
-    """Testet den gesamten Sende- und Empfangsvorgang mit Paketstruktur unter idealen Bedingungen."""
-    sent_signal, all_full_packet_bytes = send_text_mfsk(message)
-    received_text, demod_bits_str, decoded_content_bits_str, _ = receive_text_mfsk(sent_signal)
-    assert received_text == message
+    """Tests the entire send and receive process under ideal (noiseless) conditions."""
+    sent_signal_buffer = send_text_mfsk(message)
 
-    # Optional: Überprüfen der BER im Idealfall (sollte 0 sein)
-    # Um original_bits zu erhalten, müssen wir die Daten vor der Kodierung extrahieren
-    original_bits_list = []
-    for packet_bytes in all_full_packet_bytes:
-        # Extrahiere den ursprünglichen Paketinhalt (Header + Payload) vor der LDPC-Kodierung und CRC
-        # Dies erfordert eine Anpassung, da all_full_packet_bytes bereits kodierte Daten enthält
-        # Für diesen Test nehmen wir an, dass der Loopback perfekt ist und die ursprünglichen Bits direkt aus der Nachricht abgeleitet werden können
-        # In einem realen Szenario müsste man die ursprünglichen, unkodierten Bits speichern
-        
-        # Für diesen Testfall können wir die ursprünglichen Bits aus der Nachricht ableiten
-        # und dann mit den dekodierten Bits vergleichen
-        pass # Wird später im Performance-Test genauer behandelt
+    # The receiver expects a numpy array, so we read the buffer back
+    sent_signal_buffer.seek(0)
+    sent_signal, r_samplerate = sf.read(sent_signal_buffer)
+    assert r_samplerate == SAMPLE_RATE
+
+    received_text, _, _, _ = receive_text_mfsk(sent_signal)
+    assert received_text == message
 
 
 @pytest.mark.parametrize("message", [
@@ -47,11 +47,16 @@ def test_packet_loopback(message):
     "Short"
 ])
 def test_mfsk_loopback_with_noise(message):
-    """Testet den MFSK-Modem-Loopback mit Rauschen und überprüft die Dekodierung."""
-    sent_signal, _ = send_text_mfsk(message)
+    """Tests the MFSK modem loopback with noise and checks the decoding."""
+    sent_signal_buffer = send_text_mfsk(message)
+
+    # Read the buffer into a numpy array to add noise
+    sent_signal_buffer.seek(0)
+    sent_signal, r_samplerate = sf.read(sent_signal_buffer)
+    assert r_samplerate == SAMPLE_RATE
 
     # Add some noise to the signal
-    snr_db = 10 # Example SNR
+    snr_db = 10  # Example Signal-to-Noise Ratio
     signal_power = np.mean(sent_signal**2)
     noise_power = signal_power / (10**(snr_db / 10))
     noise = np.random.normal(0, np.sqrt(noise_power), sent_signal.shape)

@@ -4,86 +4,7 @@
   <meta charset="UTF-8">
   <title>SpectraChirp Acoustic Modem</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 2rem; /* Changed from 0 to 2rem */
-      background: #f6f8fa; /* Fallback color */
-      background-image: url('images/digital_radio_background.png');
-      background-size: cover;
-      background-position: center;
-      background-attachment: fixed;
-      position: relative;
-      min-height: 100vh; /* Ensure background covers full viewport height */
-      display: flex; /* Use flexbox for vertical centering */
-      flex-direction: column;
-      justify-content: center; /* Center content vertically */
-    }
-
-    body::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.6); /* Darker overlay for better contrast */
-      z-index: -1;
-    }
-
-    .container {
-      max-width: 700px;
-      margin: auto; /* Centers horizontally */
-      background: rgba(255, 255, 255, 0.9); /* Slightly transparent white background for content */
-      padding: 2rem;
-      border-radius: 1rem;
-      box-shadow: 0 2px 16px rgba(0,0,0,0.09);
-      position: relative;
-      z-index: 0;
-      /* No need for margin-top/bottom if using flexbox for vertical centering */
-    }
-    h1 { text-align: center; color: #234; }
-    .label { margin-top: 1.4rem; margin-bottom: 0.5rem; color: #345; font-weight: 600;}
-    textarea { width: 100%; min-height: 90px; padding: 0.7rem; border-radius: 0.5rem; border: 1px solid #bbb; font-size: 1rem;}
-    select, input[type="file"] { margin-bottom: 0.8rem; font-size:1rem; padding: 0.5rem; border-radius: 0.5rem; border: 1px solid #bbb;}
-    button { padding: 0.7rem 2rem; border: none; border-radius: 0.5rem; background: #4b72fa; color: #fff; font-size: 1rem; cursor: pointer;}
-    button:disabled { background: #bbb; cursor: not-allowed;}
-    .output { margin-top: 1.2rem; background: #eef; border-radius: 0.5rem; padding: 1rem; min-height: 2rem; font-family: 'Consolas', 'monospace'; position: relative;}
-    .row { display: flex; gap: 1rem; }
-    .row > * { flex: 1; }
-    .controls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; align-items: end;}
-    .divider { margin: 2rem 0 1.2rem 0; border-top: 1px solid #ddd;}
-    .download-link { display: block; margin-top: 1rem; }
-    .status-success { color: #228c22; }
-    .status-error { color: #b00; }
-    progress { width: 100%; margin-top: 1rem; }
-    .input-error { border-color: #b00 !important; } /* Highlight error input */
-
-    /* Spinner CSS */
-    .spinner {
-      border: 4px solid rgba(0, 0, 0, 0.1);
-      border-left-color: #4b72fa;
-      border-radius: 50%;
-      width: 20px;
-      height: 20px;
-      animation: spin 1s linear infinite;
-      display: inline-block;
-      vertical-align: middle;
-      margin-left: 10px;
-      display: none; /* Hidden by default */
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    .output-controls {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 0.5rem;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="container">
@@ -93,9 +14,19 @@
     <div class="label">Text Message:</div>
     <textarea id="input-text" placeholder="Enter your message..."></textarea>
 
-    <div class="row" style="margin-top: 1.5rem;">
-      <button id="send-btn">Generate Signal</button>
-      <button id="clear-btn" style="background:#eee;color:#333;">Clear</button>
+    <div class="controls-grid" style="margin-top: 1rem;">
+        <div>
+            <div class="label" style="margin-top: 0; margin-bottom: 0.5rem;">Mode:</div>
+            <select id="mode-select">
+                <option value="DEFAULT">Default (Fast, Balanced)</option>
+                <option value="ROBUST">Robust (Slow, Reliable)</option>
+                <option value="FAST">Fast (Highest Speed)</option>
+            </select>
+        </div>
+        <div class="row" style="margin-top: 1.5rem;">
+          <button id="send-btn">Generate Signal</button>
+          <button id="clear-btn" style="background:#eee;color:#333;">Clear</button>
+        </div>
     </div>
 
     <div class="label">Status / Response: <span id="send-spinner" class="spinner"></span></div>
@@ -106,181 +37,22 @@
     <div class="divider"></div>
 
     <!-- Receive -->
-    <div class="label">Decode Audio File: <span id="decode-spinner" class="spinner"></span></div>
+    <div class="label">Decode Audio: <span id="decode-spinner" class="spinner"></span></div>
     <span id="decodedModeDisplay" style="font-size: 0.8em; color: #555; margin-bottom: 10px; display: block;"></span>
     <input type="file" id="fileInput" style="display: none;">
     <div class="row" style="margin-top: 1rem;">
-      <button id="selectFileButton">Choose File</button><span id="fileNameDisplay" style="margin-left: 10px; font-size: 0.8em; max-width: 150px; display: inline-block; vertical-align: middle; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">No file chosen</span>
-      <button id="decode-btn">Decode</button>
+      <button id="selectFileButton">Choose File</button>
+      <button id="record-btn" style="background: #e65252;">Record</button>
+      <button id="stop-btn" style="display: none; background: #555;">Stop</button>
+      <button id="decode-btn">Decode from File</button>
     </div>
+    <div id="record-status" style="margin-top: 0.5rem; color: #e65252;"></div>
     <div class="output" id="decode-output" style="margin-top: 1rem;"></div>
     <div class="output-controls">
       <button id="copy-decoded-btn" style="display:none;">Copy Text</button>
     </div>
   </div>
 
-  <script>
-    const API_BASE = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
-      ? "http://127.0.0.1:8001"
-      : "";
-    const sendBtn = document.getElementById('send-btn');
-    const clearBtn = document.getElementById('clear-btn');
-    const inputText = document.getElementById('input-text');
-    const output = document.getElementById('output');
-    const downloadLink = document.getElementById('download-link');
-    const audioPlayer = document.getElementById('audio-player');
-    const sendSpinner = document.getElementById('send-spinner');
-
-    const fileInput = document.getElementById('fileInput');
-    const selectFileButton = document.getElementById('selectFileButton');
-    const fileNameDisplay = document.getElementById('fileNameDisplay');
-
-    selectFileButton.onclick = () => {
-      fileInput.click();
-    };
-
-    fileInput.onchange = () => {
-      if (fileInput.files.length > 0) {
-        fileNameDisplay.textContent = fileInput.files[0].name;
-      } else {
-        fileNameDisplay.textContent = 'No file chosen';
-      }
-    };
-    const decodeBtn = document.getElementById('decode-btn');
-    const decodeOutput = document.getElementById('decode-output');
-    const decodedModeDisplay = document.getElementById('decodedModeDisplay');
-    const decodeSpinner = document.getElementById('decode-spinner');
-    const copyDecodedBtn = document.getElementById('copy-decoded-btn');
-
-
-    // Send (Generate Signal)
-    sendBtn.onclick = async () => {
-      const msg = inputText.value.trim();
-      const modem = 'mfsk';
-      const mode = 'DEFAULT'; // MFSK mode is now fixed to DEFAULT
-
-      output.textContent = "";
-      downloadLink.style.display = "none";
-      audioPlayer.style.display = "none";
-      inputText.classList.remove('input-error'); // Clear previous error
-
-      if (!msg) {
-        output.innerHTML = `<span class="status-error">Error: Please enter a message!</span>`;
-        inputText.classList.add('input-error'); // Highlight input
-        return;
-      }
-      sendBtn.disabled = true;
-      sendSpinner.style.display = 'inline-block'; // Show spinner
-      output.textContent = "Generating signal...";
-
-      try {
-        const res = await fetch(`${API_BASE}/generate_signal`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: msg, modem, mode })
-        });
-
-        if (!res.ok) {
-            const err = await res.json();
-            throw new Error(err.detail || `HTTP Error ${res.status}`);
-        }
-
-        const blob = await res.blob();
-        const url = URL.createObjectURL(blob);
-
-        downloadLink.href = url;
-        downloadLink.download = "modem_signal.wav";
-        downloadLink.textContent = "Download Audio";
-        downloadLink.style.display = "block";
-
-        audioPlayer.src = url;
-        audioPlayer.style.display = "block";
-        output.innerHTML = `<span class="status-success">Signal generated!</span>`;
-
-      } catch (e) {
-        output.innerHTML = `<span class="status-error">Error sending: ${e.message}</span>`;
-      } finally {
-        sendBtn.disabled = false;
-        sendSpinner.style.display = 'none'; // Hide spinner
-      }
-    };
-
-    clearBtn.onclick = () => {
-      inputText.value = "";
-      output.textContent = "";
-      downloadLink.style.display = "none";
-      audioPlayer.style.display = "none";
-      inputText.classList.remove('input-error'); // Clear error on clear
-    };
-
-    // Decode (Receive)
-    decodeBtn.onclick = async () => {
-      const file = fileInput.files[0];
-      const modem = 'mfsk';
-
-      decodeOutput.textContent = "";
-      copyDecodedBtn.style.display = 'none'; // Hide copy button
-      fileInput.classList.remove('input-error'); // Clear previous error
-
-      if (!file) {
-        decodeOutput.innerHTML = `<span class="status-error">Error: Please select an audio file (.wav)!</span>`;
-        fileInput.classList.add('input-error'); // Highlight input
-        return;
-      }
-      decodeBtn.disabled = true;
-      decodeSpinner.style.display = 'inline-block'; // Show spinner
-      decodeOutput.textContent = "Decoding message...";
-
-      try {
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("modem", modem);
-
-        const res = await fetch(`${API_BASE}/decode_signal`, {
-          method: "POST",
-          body: formData
-        });
-
-        if (!res.ok) {
-            const err = await res.json();
-            throw new Error(err.detail || `HTTP Error ${res.status}`);
-        }
-
-        const data = await res.json();
-        if (data.decoded_text) {
-          decodeOutput.innerHTML = `<span class="status-success">Decoded Message:</span><br>${data.decoded_text}`;
-          if (data.detected_mode) {
-            decodedModeDisplay.textContent = `(Mode: ${data.detected_mode})`;
-          } else {
-            decodedModeDisplay.textContent = '';
-          }
-          copyDecodedBtn.style.display = 'block'; // Show copy button
-        } else {
-          decodeOutput.innerHTML = `<span class="status-error">No message decoded.</span>`;
-          decodedModeDisplay.textContent = '';
-        }
-
-      } catch (e) {
-        decodeOutput.innerHTML = `<span class="status-error">Error decoding: ${e.message}</span>`;
-      } finally {
-        decodeBtn.disabled = false;
-        decodeSpinner.style.display = 'none';
-      }
-    };
-
-    // Copy decoded text to clipboard
-    copyDecodedBtn.onclick = async () => {
-      try {
-        // Get only the text content, excluding the status span
-        const textToCopy = decodeOutput.textContent.replace('Decoded Message:', '').trim();
-        await navigator.clipboard.writeText(textToCopy);
-        alert('Decoded text copied to clipboard!');
-      } catch (err) {
-        console.error('Error copying text: ', err);
-        alert('Error copying text.');
-      }
-    };
-  </script>
-<!-- This is a test comment for workflow demonstration -->
+  <script src="script.js"></script>
 </body>
 </html>
