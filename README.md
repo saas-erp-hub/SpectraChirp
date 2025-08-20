@@ -105,7 +105,7 @@ You can use SpectraChirp in two ways: through the web interface or the command-l
 2.  **Access the Frontend (if not automatically opened):**
     If the browser does not open automatically, navigate to `http://localhost:8000/index.html` in your web browser.
 
-![SpectraChirp Web UI](https://github.com/saas-erp-hub/SpectraChirp/blob/main/docs/images/web_ui_screenshot.png?raw=true)
+![SpectraChirp Web UI](https://github.com/saas-erp-hub/SpectraChirp/blob/main/frontend/images/digital_radio_background.png?raw=true)
 
 #### Using the Command-Line Interface (CLI)
 
