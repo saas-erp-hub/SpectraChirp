@@ -1,19 +1,13 @@
-import numpy as np
 import pytest
 import zlib
 import soundfile as sf
-from backend.modem_mfsk import (
-    send_text_mfsk,
-    receive_text_mfsk,
-    _verify_crc
-)
+from backend.modem_mfsk import send_text_mfsk, receive_text_mfsk, _verify_crc
 from backend.config import (
     MODEM_MODES,
     RSC,
     PACKET_PAYLOAD_SIZE,
-    PACKET_HEADER_SIZE,
     PACKET_CRC_SIZE,
-    SAMPLE_RATE
+    SAMPLE_RATE,
 )
 
 
@@ -115,6 +109,7 @@ def test_verify_crc():
     # Test with too short CRC bytes
     short_crc = b"\x00"
     assert _verify_crc(packet_content, short_crc) is False
+
 
 # def test_packet_crc_integrity():
 #     """Tests that packets with incorrect CRC are discarded by receive_text_mfsk."""

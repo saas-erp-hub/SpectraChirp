@@ -7,3 +7,4 @@ scipy
 reedsolo
 typer[all]
 sounddevice
+matplotlib

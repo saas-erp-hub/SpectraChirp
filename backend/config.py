@@ -13,11 +13,15 @@ BASE_FREQ = 1000
 PACKET_CHIRP_DURATION = 0.1
 PACKET_CHIRP_F0 = 2500
 PACKET_CHIRP_F1 = 3500
-MIN_CORRELATION_THRESHOLD = 10  # Minimum correlation value to be considered a potential signal
-SYNC_CORRELATION_THRESHOLD_FACTOR = 0.5 # Factor to determine the peak detection threshold from the max correlation
+MIN_CORRELATION_THRESHOLD = (
+    10  # Minimum correlation value to be considered a potential signal
+)
+SYNC_CORRELATION_THRESHOLD_FACTOR = (
+    0.5  # Factor to determine the peak detection threshold from the max correlation
+)
 PACKET_PAYLOAD_SIZE = 32  # Size of the data payload in bytes
-PACKET_HEADER_SIZE = 4    # Size of the packet header in bytes
-PACKET_CRC_SIZE = 4       # Size of the CRC checksum in bytes
+PACKET_HEADER_SIZE = 4  # Size of the packet header in bytes
+PACKET_CRC_SIZE = 4  # Size of the CRC checksum in bytes
 
 # --- Forward Error Correction (FEC) Configuration ---
 # Reed-Solomon error correction settings
@@ -27,9 +31,11 @@ RSC = RSCodec(RS_NSYMS)
 
 # --- Modem Mode Definitions ---
 
+
 @dataclass
 class ModemConfig:
     """A data class to hold the configuration for a specific modem mode."""
+
     name: str
     num_tones: int
     symbol_duration_ms: float
