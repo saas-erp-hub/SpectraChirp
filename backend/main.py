@@ -7,6 +7,7 @@ import soundfile as sf
 import logging
 import os
 import io  # Added for in-memory file handling
+from pydub import AudioSegment
 from .modem_mfsk import send_text_mfsk, receive_text_mfsk
 
 logging.basicConfig(
@@ -52,14 +53,35 @@ def generate_signal(message: Message):
 
 @app.post("/decode_signal")
 async def decode_signal(file: UploadFile = File(...)):
-    """Decodes an MFSK audio signal from an uploaded WAV file in memory."""
+    """Decodes an MFSK audio signal from an uploaded audio file in memory,
+    converting it to WAV if necessary."""
     try:
-        # Read the uploaded file into an in-memory buffer
         audio_bytes = await file.read()
-        buffer = io.BytesIO(audio_bytes)
-        buffer.seek(0)
+        input_buffer = io.BytesIO(audio_bytes)
+        input_buffer.seek(0)
 
-        audio_data, _ = sf.read(buffer)
+        # Try to read directly with soundfile if it's a WAV, otherwise use pydub for conversion
+        if file.content_type == "audio/wav":
+            audio_data, _ = sf.read(input_buffer)
+        else:
+            # Determine input format based on content type or filename
+            input_format = file.content_type.split('/')[-1] if file.content_type else None
+            if not input_format and file.filename:
+                input_format = file.filename.split('.')[-1]
+            
+            # Fallback for unknown or generic types
+            if input_format not in ['wav', 'mp3', 'ogg', 'flac', 'webm']:
+                input_format = None # Let pydub try to guess or raise error
+
+            audio_segment = AudioSegment.from_file(input_buffer)
+
+            # Export to WAV format in memory for soundfile to read
+            wav_buffer = io.BytesIO()
+            audio_segment.export(wav_buffer, format="wav")
+            wav_buffer.seek(0)
+
+            audio_data, _ = sf.read(wav_buffer)
+
         decoded_text, _, _, detected_mode = receive_text_mfsk(audio_data)
 
         return {"decoded_text": decoded_text, "detected_mode": detected_mode}
