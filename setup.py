@@ -6,7 +6,7 @@ setup(
     author="ByteBuilder",
     author_email="your-email@example.com",  # Placeholder
     description="A robust acoustic modem for transmitting data through sound using MFSK.",
-    long_description=open('README.md').read(),
+    long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
     url="https://github.com/saas-erp-hub/SpectraChirp",
     project_urls={
@@ -21,11 +21,11 @@ setup(
         "Topic :: Communications",
         "Topic :: Multimedia :: Sound/Audio",
     ],
-    python_requires='>=3.8',
-    install_requires=open('backend/requirements.txt').read().splitlines(),
+    python_requires=">=3.8",
+    install_requires=open("backend/requirements.txt").read().splitlines(),
     entry_points={
-        'console_scripts': [
-            'spectrachirp=cli:app',
+        "console_scripts": [
+            "spectrachirp=cli:app",
         ],
     },
 )

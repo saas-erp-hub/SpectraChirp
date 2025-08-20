@@ -1,71 +1,35 @@
 import numpy as np
 import zlib
-import io  # <-- Make sure io is imported
-import soundfile as sf  # <-- Make sure soundfile is imported
+import io
+import soundfile as sf
 from scipy.linalg import hadamard
 from scipy.signal import chirp
 from dataclasses import dataclass
-from reedsolo import RSCodec
 from typing import List, Optional, Tuple, Union
 
-# --- Globale Konfiguration ---
-SAMPLE_RATE = 16000
-BASE_FREQ = 1000
+# Import configuration from the central config file
+from .config import (
+    SAMPLE_RATE,
+    BASE_FREQ,
+    PACKET_CHIRP_DURATION,
+    PACKET_CHIRP_F0,
+    PACKET_CHIRP_F1,
+    PACKET_PAYLOAD_SIZE,
+    PACKET_HEADER_SIZE,
+    PACKET_CRC_SIZE,
+    RS_NSYMS,
+    RSC,
+    ModemConfig,
+    MODEM_MODES,
+    MIN_CORRELATION_THRESHOLD,
+    SYNC_CORRELATION_THRESHOLD_FACTOR,
+)
 
-# --- Paket-Konfiguration ---
-PACKET_CHIRP_DURATION = 0.1
-PACKET_CHIRP_F0 = 2500
-PACKET_CHIRP_F1 = 3500
-PACKET_PAYLOAD_SIZE = 32
-PACKET_HEADER_SIZE = 4
-PACKET_CRC_SIZE = 4  # in bytes
-
-# --- Reed-Solomon Konfiguration ---
-RS_NSYMS = 16
-RSC = RSCodec(RS_NSYMS)
-
-
-# --- Modem-Modi Konfiguration ---
-@dataclass
-class ModemConfig:
-    name: str
-    num_tones: int
-    symbol_duration_ms: float
-    tone_spacing: float
-    samples_per_symbol: int
-    bits_per_symbol: int
-
-
-MODEM_MODES = {
-    "DEFAULT": ModemConfig(
-        name="DEFAULT",
-        num_tones=32,
-        symbol_duration_ms=40,
-        tone_spacing=35,
-        samples_per_symbol=640,
-        bits_per_symbol=5,
-    ),
-    "ROBUST": ModemConfig(
-        name="ROBUST",
-        num_tones=16,
-        symbol_duration_ms=60,
-        tone_spacing=25,
-        samples_per_symbol=960,
-        bits_per_symbol=4,
-    ),
-    "FAST": ModemConfig(
-        name="FAST",
-        num_tones=32,
-        symbol_duration_ms=20,
-        tone_spacing=50,
-        samples_per_symbol=320,
-        bits_per_symbol=5,
-    ),
-}
 
 @dataclass
 class PacketAnalysis:
     """Holds the analysis result for a single packet."""
+
     packet_index: int
     found_at_s: float
     rs_decode_success: bool
@@ -141,9 +105,7 @@ def _bytes_to_signal(full_packet_bytes: bytes, config: ModemConfig) -> np.ndarra
     return signal
 
 
-def _prepare_mfsk_packet(
-    chunk: bytes, packet_num: int, total_packets: int
-) -> bytes:
+def _prepare_mfsk_packet(chunk: bytes, packet_num: int, total_packets: int) -> bytes:
     header = packet_num.to_bytes(2, "big") + total_packets.to_bytes(2, "big")
     padding = b"\x00" * (PACKET_PAYLOAD_SIZE - len(chunk))
     packet_content = header + chunk + padding
@@ -152,9 +114,7 @@ def _prepare_mfsk_packet(
     return RSC.encode(message_with_crc)
 
 
-def _assemble_mfsk_signal(
-    encoded_message: bytes, config: ModemConfig
-) -> np.ndarray:
+def _assemble_mfsk_signal(encoded_message: bytes, config: ModemConfig) -> np.ndarray:
     signal = _bytes_to_signal(encoded_message, config)
     chirp_signal = generate_chirp_signal()
     full_packet_signal = np.concatenate([chirp_signal, signal])
@@ -182,7 +142,7 @@ def send_text_mfsk(text: str, mode: Union[str, ModemConfig] = "DEFAULT") -> io.B
         encoded_message = _prepare_mfsk_packet(chunk, i + 1, total_chunks)
         packet_signal = _assemble_mfsk_signal(encoded_message, config)
         all_packets_signal = np.concatenate([all_packets_signal, packet_signal])
-    
+
     # Normalize the signal to prevent clipping
     max_amplitude = np.max(np.abs(all_packets_signal))
     if max_amplitude > 1e-9:
@@ -190,12 +150,14 @@ def send_text_mfsk(text: str, mode: Union[str, ModemConfig] = "DEFAULT") -> io.B
 
     # Write to an in-memory buffer instead of a file
     buffer = io.BytesIO()
-    sf.write(buffer, all_packets_signal, SAMPLE_RATE, format='WAV', subtype='PCM_16')
+    sf.write(buffer, all_packets_signal, SAMPLE_RATE, format="WAV", subtype="PCM_16")
     buffer.seek(0)  # Rewind the buffer to the beginning for reading
     return buffer
 
 
-def _synchronize_mfsk_signal(signal: np.ndarray, config: ModemConfig) -> tuple[np.ndarray, list[int], int, int]:
+def _synchronize_mfsk_signal(
+    signal: np.ndarray, config: ModemConfig
+) -> tuple[np.ndarray, list[int], int, int]:
     if signal.ndim == 2:
         signal = signal.mean(axis=1)
     target_rms = 0.1
@@ -205,9 +167,9 @@ def _synchronize_mfsk_signal(signal: np.ndarray, config: ModemConfig) -> tuple[n
     chirp_template = generate_chirp_signal()
     chirp_len = len(chirp_template)
     correlation = np.correlate(signal, chirp_template, mode="valid")
-    if np.max(correlation) < 10:
+    if np.max(correlation) < MIN_CORRELATION_THRESHOLD:
         return signal, [], 0, 0
-    threshold = np.max(correlation) * 0.5
+    threshold = np.max(correlation) * SYNC_CORRELATION_THRESHOLD_FACTOR
     peak_indices = np.where(correlation > threshold)[0]
     if not peak_indices.any():
         return signal, [], 0, 0
@@ -238,9 +200,7 @@ def _synchronize_mfsk_signal(signal: np.ndarray, config: ModemConfig) -> tuple[n
     return signal, peaks, chirp_len, samples_per_packet
 
 
-def _demodulate_mfsk_symbols(
-    packet_chunk: np.ndarray, config: ModemConfig
-) -> str:
+def _demodulate_mfsk_symbols(packet_chunk: np.ndarray, config: ModemConfig) -> str:
     received_bits = []
     num_symbols = len(packet_chunk) // config.samples_per_symbol
     frequencies = [BASE_FREQ + i * config.tone_spacing for i in range(config.num_tones)]
@@ -279,9 +239,7 @@ def _demodulate_mfsk_symbols(
             corr_cos = np.sum(symbol_chunk * correlation_signal_cos)
             correlations[k] = np.sqrt(corr_sin**2 + corr_cos**2)
         best_symbol_index = np.argmax(np.abs(correlations))
-        received_bits.append(
-            format(best_symbol_index, f"0{config.bits_per_symbol}b")
-        )
+        received_bits.append(format(best_symbol_index, f"0{config.bits_per_symbol}b"))
     return "".join(received_bits)
 
 
@@ -303,19 +261,19 @@ def _decode_mfsk_packet(
         return None, None, None, -1, False
     demod_bits_str = demod_bits_str[:expected_encoded_bits_len]
     encoded_bytes = bits_to_bytes(demod_bits_str)
-    
+
     rs_errors_corrected = -1
     crc_ok = False
-    
+
     try:
         decoded_message, _, errata_pos = RSC.decode(encoded_bytes)
         rs_errors_corrected = len(errata_pos)
-        
+
         packet_content = decoded_message[: PACKET_HEADER_SIZE + PACKET_PAYLOAD_SIZE]
         received_crc_bytes = decoded_message[PACKET_HEADER_SIZE + PACKET_PAYLOAD_SIZE :]
-        
+
         crc_ok = _verify_crc(packet_content, received_crc_bytes)
-        
+
         if crc_ok:
             header = packet_content[:PACKET_HEADER_SIZE]
             payload = packet_content[PACKET_HEADER_SIZE:]
@@ -342,17 +300,17 @@ def receive_text_mfsk(
         if not config:
             continue
         current_signal_copy = np.copy(signal)
-        current_signal_copy, peaks, chirp_len, samples_per_packet = _synchronize_mfsk_signal(current_signal_copy, config)
+        current_signal_copy, peaks, chirp_len, samples_per_packet = (
+            _synchronize_mfsk_signal(current_signal_copy, config)
+        )
         if not peaks:
             continue
         decoded_packets = {}
         max_total_packets = 0
-        all_packets_decoded_successfully = True
         for peak_start in peaks:
             packet_start = peak_start + chirp_len
             packet_end = packet_start + samples_per_packet
             if packet_end > len(current_signal_copy):
-                all_packets_decoded_successfully = False
                 break
             packet_chunk = current_signal_copy[packet_start:packet_end]
             demod_bits_str = _demodulate_mfsk_symbols(packet_chunk, config)
@@ -364,12 +322,12 @@ def receive_text_mfsk(
                 if total_packets > max_total_packets:
                     max_total_packets = total_packets
             else:
-                all_packets_decoded_successfully = False
                 # In strict decoding, we could break here. For robustness, we continue.
-        
+                pass
+
         # Check if we have a plausible set of packets
         if decoded_packets and max_total_packets > 0:
-             # Heuristic: if we decoded at least one packet and have a total count, it's likely the right mode.
+            # Heuristic: if we decoded at least one packet and have a total count, it's likely the right mode.
             message_parts = [
                 decoded_packets.get(i, b"").rstrip(b"\x00")
                 for i in range(1, max_total_packets + 1)
@@ -388,7 +346,9 @@ def analyze_signal(signal: np.ndarray) -> tuple[Optional[str], List[PacketAnalys
     for mode_name, config in MODEM_MODES.items():
         analysis_results = []
         current_signal_copy = np.copy(signal)
-        current_signal_copy, peaks, chirp_len, samples_per_packet = _synchronize_mfsk_signal(current_signal_copy, config)
+        current_signal_copy, peaks, chirp_len, samples_per_packet = (
+            _synchronize_mfsk_signal(current_signal_copy, config)
+        )
 
         if not peaks:
             continue
@@ -401,8 +361,10 @@ def analyze_signal(signal: np.ndarray) -> tuple[Optional[str], List[PacketAnalys
 
             packet_chunk = current_signal_copy[packet_start:packet_end]
             demod_bits_str = _demodulate_mfsk_symbols(packet_chunk, config)
-            
-            _, packet_num, total_packets, rs_errors, crc_ok = _decode_mfsk_packet(demod_bits_str, config, analyze_mode=True)
+
+            _, packet_num, total_packets, rs_errors, crc_ok = _decode_mfsk_packet(
+                demod_bits_str, config, analyze_mode=True
+            )
 
             analysis_results.append(
                 PacketAnalysis(
@@ -415,9 +377,9 @@ def analyze_signal(signal: np.ndarray) -> tuple[Optional[str], List[PacketAnalys
                     total_packets=total_packets,
                 )
             )
-        
+
         # If we found any packets with a valid CRC, we assume this is the correct mode
         if any(r.crc_valid for r in analysis_results):
             return mode_name, analysis_results
-            
+
     return None, []

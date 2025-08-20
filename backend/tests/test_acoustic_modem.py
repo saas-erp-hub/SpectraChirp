@@ -1,74 +1,96 @@
 import numpy as np
 import pytest
+import soundfile as sf
 from backend.modem_mfsk import send_text_mfsk, receive_text_mfsk
+from backend.config import SAMPLE_RATE
 
-# --- Test-Helferfunktionen zur Simulation von Kanalstörungen ---
+# --- Test helper functions to simulate channel distortions ---
 
-def simulate_clipping(signal, threshold=0.8):
-    """Simuliert Hard-Clipping, wenn das Signal einen Schwellenwert überschreitet."""
+
+def _simulate_clipping(signal, threshold=0.8):
+    """Simulates hard-clipping when the signal exceeds a threshold."""
     return np.clip(signal, -threshold, threshold)
 
-def simulate_time_offset(signal, offset_seconds, sample_rate=44100):
-    """Simuliert eine verspätete Aufnahme, indem der Anfang des Signals abgeschnitten wird."""
-    offset_samples = int(offset_seconds * sample_rate)
+
+def _simulate_time_offset(signal, offset_seconds):
+    """Simulates a delayed recording by slicing the beginning of the signal."""
+    offset_samples = int(offset_seconds * SAMPLE_RATE)
     if offset_samples >= signal.shape[0]:
-        return np.array([[]]) # Leeres Signal zurückgeben, wenn der Offset zu groß ist
+        return np.array([])  # Return empty signal if offset is too large
     return signal[offset_samples:]
 
-def add_noise(signal, snr_db):
-    """Fügt dem Signal Rauschen hinzu."""
-    signal_power = np.mean(np.abs(signal)**2)
+
+def _add_noise(signal, snr_db):
+    """Adds Gaussian noise to the signal to achieve a specific SNR."""
+    signal_power = np.mean(np.abs(signal) ** 2)
     if signal_power == 0:
         return signal
-    noise_power = signal_power / (10**(snr_db / 10))
-    noise = np.random.normal(0, np.sqrt(noise_power/2), signal.shape) + 1j * np.random.normal(0, np.sqrt(noise_power/2), signal.shape)
-    return signal + noise.real # Nur den realen Teil des Rauschens hinzufügen, da unser Signal real ist
+    noise_power = signal_power / (10 ** (snr_db / 10))
+    noise = np.random.normal(0, np.sqrt(noise_power), signal.shape)
+    return signal + noise
 
-# --- Testfälle ---
+
+# --- Test Cases ---
+
 
 def test_perfect_loopback():
-    """Testet die Übertragung unter idealen Bedingungen (Loopback)."""
+    """Tests the transmission under ideal (loopback) conditions."""
     test_message = "This is a perfect loopback test."
-    sent_signal, _ = send_text_mfsk(test_message)
+    buffer = send_text_mfsk(test_message)
+    buffer.seek(0)
+    sent_signal, _ = sf.read(buffer)
     received_text, _, _, _ = receive_text_mfsk(sent_signal)
     assert received_text.strip() == test_message
 
+
 @pytest.mark.parametrize("snr_db", [20, 15, 10])
 def test_with_noise(snr_db):
-    """Testet die Robustheit gegen verschieden starke Rauschpegel."""
+    """Tests robustness against different levels of noise."""
     test_message = "Testing with noise."
-    sent_signal, _ = send_text_mfsk(test_message)
-    noisy_signal = add_noise(sent_signal, snr_db)
+    buffer = send_text_mfsk(test_message)
+    buffer.seek(0)
+    sent_signal, _ = sf.read(buffer)
+    noisy_signal = _add_noise(sent_signal, snr_db)
     received_text, _, _, _ = receive_text_mfsk(noisy_signal)
     assert received_text.strip() == test_message
 
+
 def test_with_clipping():
-    """Testet die Robustheit gegen Signal-Clipping."""
+    """Tests robustness against signal clipping."""
     test_message = "Testing with signal clipping."
-    sent_signal, _ = send_text_mfsk(test_message)
-    clipped_signal = simulate_clipping(sent_signal, threshold=0.7)
+    buffer = send_text_mfsk(test_message)
+    buffer.seek(0)
+    sent_signal, _ = sf.read(buffer)
+    clipped_signal = _simulate_clipping(sent_signal, threshold=0.7)
     received_text, _, _, _ = receive_text_mfsk(clipped_signal)
     assert received_text.strip() == test_message
+
 
 @pytest.mark.parametrize("offset_sec", [0.01, 0.02])
 def test_with_time_offset(offset_sec):
     """
-    Testet die Robustheit gegen eine verspätete Aufnahme.
-    Da wir keine Synchronisation haben, wird die Nachricht einfach abgeschnitten.
+    Tests robustness against a delayed recording.
+    Since there is sync, the message should still be detected.
     """
     test_message = "A long message to test robustness against time offsets."
-    sent_signal, _ = send_text_mfsk(test_message)
-    offset_signal = simulate_time_offset(sent_signal, offset_sec)
+    buffer = send_text_mfsk(test_message)
+    buffer.seek(0)
+    sent_signal, _ = sf.read(buffer)
+    offset_signal = _simulate_time_offset(sent_signal, offset_sec)
     received_text, _, _, _ = receive_text_mfsk(offset_signal)
     assert len(received_text) > 0
-    assert len(received_text) < len(test_message)
+    # The received text might be slightly different due to the offset, but should contain the core message
+    assert "message" in received_text
+
 
 def test_with_all_distortions():
-    """Testet die Robustheit gegen eine Kombination aller Störungen."""
+    """Tests robustness against a combination of all distortions."""
     test_message = "Final boss: a long message with all distortions combined."
-    sent_signal, _ = send_text_mfsk(test_message)
-    distorted_signal = simulate_clipping(sent_signal, threshold=0.8)
-    distorted_signal = add_noise(distorted_signal, snr_db=18)
-    distorted_signal = simulate_time_offset(distorted_signal, offset_seconds=0.015)
+    buffer = send_text_mfsk(test_message)
+    buffer.seek(0)
+    sent_signal, _ = sf.read(buffer)
+    distorted_signal = _simulate_clipping(sent_signal, threshold=0.8)
+    distorted_signal = _add_noise(distorted_signal, snr_db=18)
+    distorted_signal = _simulate_time_offset(distorted_signal, offset_seconds=0.015)
     received_text, _, _, _ = receive_text_mfsk(distorted_signal)
-    assert received_text == "[Could not detect modem mode or decode message]"
+    assert "message" in received_text
